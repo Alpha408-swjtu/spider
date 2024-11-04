@@ -16,9 +16,8 @@ const (
 	EACHP        = 25
 	UrlPrefix    = "https://movie.douban.com/top250?start="
 	SelectPrefix = "#content > div > div.article > ol > li:nth-child("
-
-	NameBack = ") > div > div.info > div.hd > a > span:nth-child(1)"
-	InfoBack = ") > div > div.info > div.bd > p:nth-child(1)"
+	NameBack     = ") > div > div.info > div.hd > a > span:nth-child(1)"
+	InfoBack     = ") > div > div.info > div.bd > p:nth-child(1)"
 )
 
 var (
@@ -34,11 +33,9 @@ func HandleErr(err error) {
 }
 
 func GetName(page int) {
-
 	if page%25 != 0 && page != 0 {
 		panic("参数非法")
 	}
-
 	if client == nil {
 		clientOnce.Do(func() {
 			client = &http.Client{}
@@ -64,23 +61,19 @@ func GetName(page int) {
 			name := docDetial.Find(nameString).Text()
 			info := docDetial.Find(InfoString).Text()
 			dir, actor, year := utils.SpliteInfo(info)
-
 			movie := types.Movie{
 				Name:     name,
 				Year:     year,
 				Director: dir,
 				Actor:    actor,
 			}
-
 			MovieCh <- movie
 		}(i)
 	}
 	wg.Wait()
-
 }
 
 func main() {
-
 	wg := sync.WaitGroup{}
 	wg.Add(MOVIES / EACHP)
 	for i := 0; i < MOVIES; i += EACHP {
@@ -91,7 +84,6 @@ func main() {
 	}
 	wg.Wait()
 	close(MovieCh)
-
 	nameS := make([]types.Movie, 0, 500)
 	tempCh := make(chan int)
 	go func() {
@@ -101,14 +93,11 @@ func main() {
 			if !ok {
 				break
 			}
-
 		}
 		tempCh <- 1
 	}()
 	<-tempCh
-
 	for _, movie := range nameS {
 		fmt.Println(movie)
 	}
-
 }
